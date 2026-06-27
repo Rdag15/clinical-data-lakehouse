@@ -37,17 +37,21 @@ real-world data is honestly mapped — not faked — into a clinical-trial submi
 
 ## Reproducing the data
 
-The raw data is **not committed** (it's regeneratable). Generate the identical 100-patient
-sample with a fixed seed:
+The raw data is **not committed** (it's regeneratable). Generate the dataset with a fixed seed:
 
 ```bash
 # Requires JDK 17+
-java -jar synthea-with-dependencies.jar -p 100 -s 12345 --exporter.csv.export=true
+java -jar synthea-with-dependencies.jar -p 1000 -s 12345 --exporter.csv.export=true
 ```
 
 The same seed always produces the same dataset — reproducible data sourcing. Output lands
 in `output/csv/`; six domains feed the pipeline: `patients`, `encounters`, `conditions`,
 `medications`, `observations`, `procedures`.
+
+> **Scale note.** The pipeline is parameterized by `-p`. The committed SDTM reference export
+> under [`data/`](data/) is a **100-patient** sample (small enough to browse on GitHub); the
+> [ML/analytics layer](ml/) uses **1,000 patients** so the model has enough signal — at that
+> scale the Safe Harbor `90+` cohort also has members. Nothing downstream cares about the count.
 
 ---
 
@@ -137,6 +141,27 @@ The report itself is committed at [`validation/sdtmig-3-4-report.xlsx`](validati
 
 ---
 
+## Analytics & ML — diabetes phenotype prediction
+
+A downstream scikit-learn layer ([`ml/`](ml/)) predicts **type-2 diabetes** from demographics
+and general healthcare utilization — a care-management *risk-stratification* framing built
+with a deliberately **leakage-aware** design (prediabetes held out of the target; condition
+counts, medication count, and protected attributes excluded from the features).
+
+| Model | Test AUC | Recall | Precision |
+|-------|:--------:|:------:|:---------:|
+| Logistic Regression | 0.949 | 0.881 | 0.627 |
+| Gradient Boosting | **0.953** | 0.738 | 0.838 |
+
+The dominant feature is `observation_count` — the model detects diabetes by its **lab-monitoring
+footprint**, an interpretable and defensible signal. It runs fully offline (reproduces the gold
+feature logic in pandas). **[See `ml/README.md`](ml/README.md)** for the design rationale,
+results, and figures.
+
+![ROC curves](ml/figures/roc_curves.png)
+
+---
+
 ## Repository layout
 
 ```
@@ -145,6 +170,13 @@ clinical-data-lakehouse/
 ├── VALIDATION.md                     # CDISC CORE conformance triage
 ├── notebooks/
 │   └── clinical_lakehouse_pipeline.ipynb   # full Bronze→Silver→Gold→SDTM pipeline (with outputs)
+├── ml/                               # diabetes-phenotype ML layer (scikit-learn)
+│   ├── README.md                     # design rationale, results, figures
+│   ├── build_features.py             # Synthea CSV → leakage-aware patient feature table
+│   ├── train_diabetes_model.py       # train/evaluate + figures + metrics.json
+│   ├── patient_features.csv          # generated feature table (1,000 patients)
+│   ├── metrics.json                  # model results
+│   └── figures/                      # ROC, feature importance, confusion matrix, EDA
 ├── scripts/
 │   └── convert_to_xpt.py             # SDTM CSV → SAS v5 XPORT for CORE validation
 ├── data/sdtm/

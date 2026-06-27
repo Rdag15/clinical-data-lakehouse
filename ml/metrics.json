@@ -1,0 +1,41 @@
+{
+  "n_patients": 1129,
+  "n_features": 8,
+  "features": [
+    "age",
+    "is_male",
+    "income",
+    "healthcare_expenses",
+    "healthcare_coverage",
+    "encounter_count",
+    "procedure_count",
+    "observation_count"
+  ],
+  "target": "has_diabetes",
+  "diabetes_prevalence": 0.15,
+  "n_train": 846,
+  "n_test": 283,
+  "best_model": "Gradient Boosting",
+  "models": {
+    "Logistic Regression": {
+      "cv_auc_mean": 0.946,
+      "cv_auc_std": 0.012,
+      "test_auc": 0.949,
+      "test_avg_precision": 0.854,
+      "test_accuracy": 0.905,
+      "test_precision": 0.627,
+      "test_recall": 0.881,
+      "test_f1": 0.733
+    },
+    "Gradient Boosting": {
+      "cv_auc_mean": 0.96,
+      "cv_auc_std": 0.013,
+      "test_auc": 0.953,
+      "test_avg_precision": 0.878,
+      "test_accuracy": 0.94,
+      "test_precision": 0.838,
+      "test_recall": 0.738,
+      "test_f1": 0.785
+    }
+  }
+}

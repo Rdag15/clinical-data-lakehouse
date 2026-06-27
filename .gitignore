@@ -1,0 +1,15 @@
+# Synthea raw output + the ~200MB generator jar (regeneratable — see README)
+synthea/output/
+synthea/*.jar
+
+# NOTE: data/ and validation/ ARE committed on purpose (synthetic SDTM output +
+# the CDISC CORE conformance report) so the repo is self-contained.
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
